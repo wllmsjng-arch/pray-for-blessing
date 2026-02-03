@@ -5,7 +5,7 @@
 | 步骤 | 内容 | 状态 |
 |------|------|------|
 | Step 1 | 初始化项目 | ✅ 已完成 |
-| Step 2 | 数据定义（fuThemes / blessingTexts） | 未开始 |
+| Step 2 | 数据定义（fuThemes / blessingTexts） | ✅ 已完成 |
 | Step 3 | 状态机框架与今日状态检查（useBlessingStore 第一部分） | 未开始 |
 | Step 4 | 随机种子与祝福生成（useBlessingStore 第二部分） | 未开始 |
 | Step 5 | 存储操作（useBlessingStore 第三部分） | 未开始 |
@@ -15,7 +15,7 @@
 | Step 9 | 降临态 — 收纳动画与保存（DescendState 第二部分） | 未开始 |
 | Step 10 | 成功态组件（SuccessState） | 未开始 |
 | Step 11 | 红意信封页面（envelope） | 未开始 |
-| Step 12 | 色彩方案（colors.ts） | 未开始 |
+| Step 12 | 色彩方案（colors.ts） | ✅ 已完成 |
 | Step 13 | 图片资源准备 | 未开始 |
 | Step 14 | 图片服务架构预留（imageService） | 未开始 |
 | Step 15 | Prompt 模板 | 未开始 |
@@ -53,4 +53,16 @@
 - 新增 loading 初始态（tech.md 未写，编码前讨论确认：等待 AsyncStorage 异步读取完成后再切换，避免界面闪烁）
 - ViewingState 使用普通 `<Image />` 而非复用 `<FuImage />`（编码前讨论确认）
 
-**备份**：commit `fa323e7`，已推送至 GitHub
+**备份**：commit `fa323e7`，tag `task1-done`
+
+### Step 2 + Step 12：数据定义 + 色彩方案（2026-02-03）
+
+**完成内容**：
+
+1. 创建 `constants/colors.ts` — 全局色彩方案（12 个值），与 tech.md Step 12 完全一致
+2. 创建 `data/blessingTexts.ts` — 20 条祝福句，与产品设计文档 5.2 完全一致
+3. 创建 `data/fuThemes.ts` — 10 个符主题 `{ id, name, image }`，image 用 `require()` 指向 `assets/fu/`
+4. 创建 `assets/fu/*.png` × 10 — 1×1 透明占位图，防止 Metro bundler 报错，后续替换为 AI 生成的真图
+5. 同步更新 `tech.md`（10 处修改）：加入 zustand 依赖、loading 初始态、LCG 参数、GridBackground/Header 组件、ViewingState 用普通 Image 等编码前讨论确认的变更
+
+**备份**：tag `task2-done`

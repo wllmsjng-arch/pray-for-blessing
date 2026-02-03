@@ -33,8 +33,9 @@
 | 渐变 | expo-linear-gradient | 背景/卡片渐变色 |
 | 本地存储 | @react-native-async-storage/async-storage | 键值对存储（每日标记+信封数据） |
 | 图片 | expo-image | 高性能图片组件（支持 PNG 透明） |
+| 状态管理 | zustand | 全局状态 store，解决跨路由（index↔envelope）状态共享 |
 
-全部为 Expo 生态内的成熟库，通过 `npx expo install` 一键安装。
+全部为 Expo 生态内的成熟库，通过 `npx expo install` 一键安装（zustand 通过 `npm install` 安装）。
 
 ---
 
@@ -44,7 +45,7 @@
 hongyi/
 ├── app/                          # expo-router 页面目录
 │   ├── _layout.tsx               # 根布局（全局背景色、字体加载）
-│   ├── index.tsx                 # 首页（3 个状态切换）
+│   ├── index.tsx                 # 首页（5 个状态切换：loading/button/descend/success/viewing）
 │   └── envelope.tsx              # 红意信封页面
 ├── components/
 │   ├── ButtonState.tsx           # 按钮态：「请红意」
@@ -52,9 +53,11 @@ hongyi/
 │   ├── SuccessState.tsx          # 成功态：「红意已入封」
 │   ├── ViewingState.tsx          # 回看态：历史信封查看
 │   ├── EnvelopeCard.tsx          # 信封列表单条卡片
-│   └── FuImage.tsx               # 符图片组件（漂浮动效封装）
+│   ├── FuImage.tsx               # 符图片组件（漂浮动效封装，仅 DescendState 使用）
+│   ├── GridBackground.tsx        # 宣纸网格纹理背景
+│   └── Header.tsx                # 顶部栏（产品名+日期+右上角入口）
 ├── hooks/
-│   └── useBlessingStore.ts       # 核心状态管理 hook（状态机+存储+随机）
+│   └── useBlessingStore.ts       # Zustand 全局 store（状态机+存储+随机）
 ├── data/
 │   ├── fuThemes.ts               # 10 个符主题定义
 │   ├── blessingTexts.ts          # 20 条祝福句
@@ -86,15 +89,16 @@ hongyi/
 
 ### 状态机
 
-首页有 4 个视图状态，同页切换，不跳转路由：
+首页有 5 个视图状态，同页切换，不跳转路由：
 
 ```
-button（按钮态）→ descend（降临态）→ success（成功态）
-                                        ↕
-                               viewing（回看态）← 任意态均可进入
+loading（加载态）→ button（按钮态）→ descend（降临态）→ success（成功态）
+                                                          ↕
+                                                 viewing（回看态）← 任意态均可进入
 ```
 
 **状态转换触发条件**:
+- `loading → button/descend/success`：APP 启动时 `checkTodayStatus()` 异步读取 AsyncStorage 完成后，根据结果切换（loading 期间显示暖白背景空白页，避免界面闪烁）
 - `button → descend`：用户点击「请红意」
 - `descend → success`：用户点击「收下祝福」
 - `任意态 → viewing`：用户在信封列表中点击某条历史记录
@@ -145,7 +149,7 @@ button（按钮态）→ descend（降临态）→ success（成功态）
 | 日期 | 底部居中 | 温灰色小字，格式 `YYYY/M/D` |
 | 「返回」按钮 | 右上角 | 点击回到进入前的 homeState |
 
-纯查看模式，不含「收下祝福」按钮，不改变任何存储数据。hook 内用 `previousState` 变量记录进入 viewing 前的 homeState，用于返回。
+纯查看模式，不含「收下祝福」按钮，不改变任何存储数据。符图片使用普通 `<Image />` 渲染（不复用 `<FuImage />`，无漂浮动效）。store 内用 `previousState` 变量记录进入 viewing 前的 homeState，用于返回。
 
 ### 红意信封页
 
@@ -173,13 +177,14 @@ button（按钮态）→ descend（降临态）→ success（成功态）
 
 ### 场景 1：冷启动（首次使用 / 跨日打开）
 
-1. APP 启动 → `app/index.tsx` 挂载 → 调用 `useBlessingStore()` hook
-2. hook 内 `useEffect` 触发 `checkTodayStatus()`
-3. `checkTodayStatus()`:
+1. APP 启动 → `app/index.tsx` 挂载 → 调用 `useBlessingStore()` Zustand store
+2. 初始 `homeState = 'loading'` → 页面渲染暖白背景空白（无闪烁）
+3. `useEffect` 触发 `checkTodayStatus()`（异步）
+4. `checkTodayStatus()`:
    - 读取 `AsyncStorage["blessed_YYYY-MM-DD"]` → **不存在**
    - 读取 `AsyncStorage["generated_YYYY-MM-DD"]` → **不存在**
    - 设置 `homeState = 'button'`
-4. `index.tsx` 根据 `homeState === 'button'` 渲染 `<ButtonState />`
+5. `index.tsx` 根据 `homeState === 'button'` 渲染 `<ButtonState />`
 5. 页面呈现：顶部产品名+日期 | 居中「请红意」按钮 | 右上角「红意信封」入口
 6. **等待用户操作**
 
@@ -261,19 +266,19 @@ button（按钮态）→ descend（降临态）→ success（成功态）
 
 | 函数 | 归属文件 | 签名 | 说明 |
 |------|---------|------|------|
-| `checkTodayStatus()` | `hooks/useBlessingStore.ts` | `() → void` | 启动时调用。按优先级检查 `blessed_` → `generated_` → 无标记，设置 `homeState` 并在 descend 情况下调用 `generateBlessing()` 还原数据 |
+| `checkTodayStatus()` | `hooks/useBlessingStore.ts` | `() → Promise<void>` | 启动时调用（异步）。按优先级检查 `blessed_` → `generated_` → 无标记，设置 `homeState`（从 loading 切换）并在 descend 情况下调用 `generateBlessing()` 还原数据 |
 | `generateBlessing()` | `hooks/useBlessingStore.ts` | `() → void` | 以 `getToday()` 为种子，确定性选取 `FU_THEMES[fuIndex]` + `BLESSING_TEXTS[blessingIndex]`，将结果写入 `currentBlessing` 状态 |
 | `saveBlessing()` | `hooks/useBlessingStore.ts` | `() → Promise<void>` | 将 `currentBlessing` 持久化到 AsyncStorage envelopes 数组（幂等），并写入 `blessed_` 标记 |
 | `loadEnvelopes()` | `hooks/useBlessingStore.ts` | `() → Promise<Envelope[]>` | 读取 AsyncStorage 中全部历史信封记录，按时间倒序返回 |
 
 ### Hook 导出接口
 
-`useBlessingStore()` 返回以下状态和方法，供 `index.tsx` 及子组件使用：
+`useBlessingStore()` 为 Zustand 全局 store，返回以下状态和方法，供 `index.tsx`、`envelope.tsx` 及子组件共享使用：
 
 ```ts
 {
   // 状态
-  homeState: HomeState,                    // 当前视图状态
+  homeState: HomeState,                    // 当前视图状态（初始值 'loading'）
   currentBlessing: {                       // 当前生成的祝福（descend 态数据源）
     fuTheme: FuTheme,                      //   选中的符主题（含 id, name, image）
     blessingText: string,                  //   选中的祝福句
@@ -283,6 +288,7 @@ button（按钮态）→ descend（降临态）→ success（成功态）
   isFromDescend: boolean,                  // SuccessState 动画开关（true=转场淡入，false=静态）
 
   // 方法
+  checkTodayStatus: () => Promise<void>,   // 启动时调用，异步读取 AsyncStorage 判断今日状态
   generateBlessing: () => void,            // 生成当日祝福 → 写入 currentBlessing
   saveBlessing: () => Promise<void>,       // 持久化 currentBlessing
   loadEnvelopes: () => Promise<Envelope[]>,// 加载历史信封
@@ -328,7 +334,7 @@ homeState 切为 'descend'
 ### 类型定义
 
 ```ts
-type HomeState = 'button' | 'descend' | 'success' | 'viewing';
+type HomeState = 'loading' | 'button' | 'descend' | 'success' | 'viewing';
 
 interface FuTheme {
   id: string;          // "chijinjie"
@@ -384,15 +390,17 @@ export const BLESSING_TEXTS: string[] = [
 
 ### Step 3: 状态机框架与今日状态检查（hooks/useBlessingStore.ts — 第一部分）
 
-用 React hook + AsyncStorage 实现业务逻辑，本步完成 hook 骨架和状态初始化。
+用 **Zustand** 全局 store + AsyncStorage 实现业务逻辑（Zustand 保证 index.tsx 与 envelope.tsx 跨路由共享同一状态实例），本步完成 store 骨架和状态初始化。
 
 **状态机**:
 ```
-type HomeState = 'button' | 'descend' | 'success' | 'viewing';
+type HomeState = 'loading' | 'button' | 'descend' | 'success' | 'viewing';
 ```
 
+初始值为 `'loading'`，等待 `checkTodayStatus()` 异步完成后切换。
+
 **核心函数**:
-- `checkTodayStatus()`: 按优先级读取 AsyncStorage 判断今日状态：`blessed_YYYY-MM-DD` 存在 → `success`；`generated_YYYY-MM-DD` 存在 → `descend`（调用 `generateBlessing()` 还原当日结果）；都不存在 → `button`
+- `checkTodayStatus()`: 异步读取 AsyncStorage 判断今日状态：`blessed_YYYY-MM-DD` 存在 → `success`；`generated_YYYY-MM-DD` 存在 → `descend`（调用 `generateBlessing()` 还原当日结果）；都不存在 → `button`
 
 **数据存储结构**（AsyncStorage）:
 ```
@@ -413,7 +421,8 @@ type HomeState = 'button' | 'descend' | 'success' | 'viewing';
 
 **随机种子**:
 - 将日期字符串 `"20260202"` 转为数字作为种子
-- 用简单的线性同余生成器产生确定性伪随机数
+- 线性同余生成器（LCG）参数：`a = 1664525, c = 1013904223, m = 2^32`（经典 Numerical Recipes 参数）
+- 公式：`seed = (a * seed + c) % m`，每次调用返回 `seed / m`（0~1 浮点数）
 - 保证同一天无论打开多少次 APP，生成的符+祝福句组合相同
 
 **日期统一规则**:
