@@ -37,12 +37,12 @@
 
 | 文件 | 作用 | 状态 |
 |------|------|------|
-| `components/ButtonState.tsx` | 按钮态：居中「请红意」按钮，圆角矩形玉石质感，深红渐变 + 半透明高光 | ✅ 占位已创建 |
-| `components/DescendState.tsx` | 降临态：符凝现动画（opacity+scale 1200ms）→ 漂浮循环 → 祝福句淡入 → 收下祝福按钮 → 收纳化散动画 | ✅ 占位已创建 |
-| `components/SuccessState.tsx` | 成功态：接收 `animated` prop，true 时播放淡入动画，false 时静态呈现 | ✅ 占位已创建 |
+| `components/ButtonState.tsx` | 按钮态：居中「请红意」按钮，圆角矩形玉石质感，深红渐变 + 半透明高光 | ✅ 已创建 |
+| `components/DescendState.tsx` | 降临态：符凝现动画（opacity+scale 1200ms）→ 漂浮循环 → 祝福句淡入 → 收下祝福按钮 → 收纳化散动画 | ✅ 已创建 |
+| `components/SuccessState.tsx` | 成功态：接收 `animated` prop，true 时播放淡入动画，false 时静态呈现 | ✅ 已创建 |
 | `components/ViewingState.tsx` | 回看态：普通 `<Image />` 静态展示符 + 祝福句 + 底部日期，右上角返回按钮 | ✅ 占位已创建 |
 | `components/EnvelopeCard.tsx` | 信封卡片：左侧日期 + 右侧祝福句（LinearGradient mask 渐隐），暖白微红渐变背景 | 待创建 |
-| `components/FuImage.tsx` | 符图片组件：封装漂浮动效（withRepeat ±3px / 4.5s），仅 DescendState 使用 | 待创建 |
+| `components/FuImage.tsx` | 符图片组件：封装漂浮动效（withRepeat ±3px / 4.5s），仅 DescendState 使用 | ✅ 已创建 |
 | `components/GridBackground.tsx` | 宣纸网格纹理：极淡细线网格 `rgba(180,170,160,0.06)`，间距 40px | ✅ 已创建 |
 | `components/Header.tsx` | 顶部栏：产品名 + 今日日期（小字），右上角「红意信封」入口 / 回看态「返回」按钮 | ✅ 已创建 |
 

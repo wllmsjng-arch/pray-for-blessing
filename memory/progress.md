@@ -10,10 +10,10 @@
 | Step 4 | 随机种子与祝福生成（useBlessingStore 第二部分） | ✅ 已完成 |
 | Step 5 | 存储操作（useBlessingStore 第三部分） | ✅ 已完成 |
 | Step 6 | 首页视图（index.tsx） | ✅ 已完成 |
-| Step 7 | 按钮态组件（ButtonState） | 未开始 |
-| Step 8 | 降临态 — 凝现动画（DescendState 第一部分） | 未开始 |
-| Step 9 | 降临态 — 收纳动画与保存（DescendState 第二部分） | 未开始 |
-| Step 10 | 成功态组件（SuccessState） | 未开始 |
+| Step 7 | 按钮态组件（ButtonState） | ✅ 已完成 |
+| Step 8 | 降临态 — 凝现动画（DescendState 第一部分） | ✅ 已完成 |
+| Step 9 | 降临态 — 收纳动画与保存（DescendState 第二部分） | ✅ 已完成 |
+| Step 10 | 成功态组件（SuccessState） | ✅ 已完成 |
 | Step 11 | 红意信封页面（envelope） | 未开始 |
 | Step 12 | 色彩方案（colors.ts） | ✅ 已完成 |
 | Step 13 | 图片资源准备 | 未开始 |
@@ -150,5 +150,62 @@ Steps 3、4、5 均为同一文件 `hooks/useBlessingStore.ts`，一次性完成
 - `GridBackground.tsx`：线色、间距与 tech.md Step 6 背景设计完全一致
 - `Header.tsx`：与 tech.md 中各状态的「右上角入口」描述一致（三态常驻「红意信封」，回看态显示「返回」）
 - 占位组件的 Props 接口与 tech.md 核心定义速查中的组件 Props 接口完全匹配
+
+**TypeScript 检查**：`npx tsc --noEmit` 通过，零错误。
+
+### Step 7 + Step 8 + Step 9 + Step 10：按钮态 + 降临态 + 成功态 + FuImage（2026-02-04）
+
+**完成内容**：
+
+Steps 7–10 涉及 4 个组件文件，一次性完成。另新建 FuImage 组件。
+
+1. **`components/FuImage.tsx`**（新建 — 符图片组件）：
+   - Props：`{ theme: FuTheme }`
+   - 使用 `expo-image` 的 `Image` 组件渲染符图片，`contentFit="contain"`，尺寸 220×220
+   - 漂浮动效：`withRepeat(withSequence(withTiming(-3, 2250ms), withTiming(0, 2250ms)), -1, false)`
+   - 幅度 ±3px，周期 4.5s（上 2.25s + 下 2.25s），无限循环
+   - 挂载即开始漂浮，凝现动画由 DescendState 外层 wrapper 控制
+
+2. **`components/ButtonState.tsx`**（替换占位 — Step 7）：
+   - 无 props，内部通过 Zustand selector 获取 `generateBlessing`
+   - 居中「请红意」按钮，`TouchableOpacity` 包裹 `LinearGradient`
+   - 形态：圆角矩形（`borderRadius: 16`），深红渐变 `#6B2D2D` → `#8B3A3A`
+   - 半透明高光覆盖层 `rgba(255,255,255,0.06)`（`StyleSheet.absoluteFillObject`）
+   - 极细描边 `rgba(139,58,58,0.25)`（`StyleSheet.hairlineWidth`）
+   - 柔和阴影 `rgb(107,45,45)` opacity 0.12，模拟石头自然投影
+   - 文字：暖白 `#F2EDE9`，fontSize 18，fontWeight '400'，letterSpacing 4
+   - 点击后 `useState` 立即禁用按钮（防重复触发），调用 `generateBlessing()`
+
+3. **`components/DescendState.tsx`**（替换占位 — Steps 8 + 9）：
+   - 无 props，内部通过 Zustand selector 获取 `currentBlessing` 和 `saveBlessing`
+   - **7 个 Shared Value** 驱动 4 阶段动画序列：
+     - Phase 1 凝现（t=0）：`fuOpacity` 0→1 + `fuScale` 0.92→1，1200ms，`Easing.out(quad)`
+     - Phase 2 祝福句（t=2000ms）：`textOpacity` 0→1 + `textTranslateY` 8→0，800ms
+     - Phase 3 按钮（t=2400ms）：`buttonOpacity` 0→1，600ms
+     - Phase 4 收纳化散（用户点击触发）：`containerOpacity` 1→0 + `containerScale` 1→0.85，1000ms，`Easing.in(quad)`
+   - 挂载瞬间 `Haptics.impactAsync(ImpactFeedbackStyle.Light)` 轻震动
+   - 收纳完成回调 `runOnJS(onCollectionComplete)` 调用 `useBlessingStore.setState({ homeState: 'success', isFromDescend: true })`
+   - 「收下祝福」为文字按钮，哑光铜色 `COLORS.accent`，点击后 `useState` 立即禁用
+   - `saveBlessing()` 在点击瞬间 fire-and-forget 执行，不等动画
+
+4. **`components/SuccessState.tsx`**（替换占位 — Step 10）：
+   - Props：`{ animated: boolean }`
+   - `animated=true`（从 descend 转场进入）：
+     - 「红意已入封」`Animated.Text` 淡入 600ms
+     - +300ms 后「今日已祈福」`Animated.Text` 淡入 600ms
+   - `animated=false`（冷启动恢复）：所有 opacity 初始值 1，无动画，即时呈现
+   - 「红意已入封」：深红 `COLORS.primary`（`#6B2D2D`），fontSize 22，fontWeight '400'
+   - 「今日已祈福」：温灰 `COLORS.textMuted`（`#9E918A`），fontSize 14
+
+**与 tech.md 的一致性**：
+
+- FuImage：漂浮参数（±3px / 4.5s）与 tech.md Step 8 完全一致
+- ButtonState：渐变色、圆角、高光、描边、阴影、文字色均与 tech.md Step 7 完全一致
+- DescendState：
+  - 4 阶段动画时序与 tech.md Steps 8–9 的技术执行时序完全吻合
+  - 凝现用 `withTiming`（非 `withSpring`），符合"不弹跳"原则
+  - 化散用 `easeIn` 淡出+微缩，符合"原地安静消散"描述
+  - `saveBlessing()` 在点击瞬间立即执行，不依赖动画完成
+- SuccessState：animated 参数分支、文字色、字号均与 tech.md Step 10 完全一致
 
 **TypeScript 检查**：`npx tsc --noEmit` 通过，零错误。
