@@ -58,13 +58,13 @@
 |------|------|------|
 | `data/fuThemes.ts` | 10 个符主题定义：`{ id, name, image }` 数组，image 为 `require('../assets/fu/xxx.png')` | ✅ 已创建 |
 | `data/blessingTexts.ts` | 20 条祝福句字符串数组 | ✅ 已创建 |
-| `data/promptTemplates.ts` | AI 图片生成 Prompt 模板（后续阶段用，MVP 不调用） | 待创建 |
+| `data/promptTemplates.ts` | AI 图片生成 Prompt 模板（后续阶段用，MVP 不调用） | ✅ 已创建 |
 
 ### 服务（services/）
 
 | 文件 | 作用 | 状态 |
 |------|------|------|
-| `services/imageService.ts` | 图片服务抽象层：MVP 用 `LocalImageService` 返回本地 require 图片，预留 `ApiImageService` 接口 | 待创建 |
+| `services/imageService.ts` | 图片服务抽象层：MVP 用 `LocalImageService` 返回本地 require 图片，预留 `ApiImageService` 接口 | ✅ 已创建 |
 
 ### 常量（constants/）
 

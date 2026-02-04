@@ -17,8 +17,8 @@
 | Step 11 | 红意信封页面（envelope） | ✅ 已完成 |
 | Step 12 | 色彩方案（colors.ts） | ✅ 已完成 |
 | Step 13 | 图片资源准备 | 未开始 |
-| Step 14 | 图片服务架构预留（imageService） | 未开始 |
-| Step 15 | Prompt 模板 | 未开始 |
+| Step 14 | 图片服务架构预留（imageService） | ✅ 已完成 |
+| Step 15 | Prompt 模板 | ✅ 已完成 |
 | Step 16 | 构建与测试 | 未开始 |
 
 ---
@@ -258,5 +258,30 @@ Step 11 涉及 3 个文件：1 个页面替换占位 + 1 个组件替换占位 +
 - `ViewingState.tsx`：
   - 用 RN 原生 `<Image />` 而非 `<FuImage />`，符合 tech.md「ViewingState 使用普通 Image」决策
   - 静态无动画、日期格式 `YYYY/M/D` 均与 tech.md 回看态描述完全一致
+
+**TypeScript 检查**：`npx tsc --noEmit` 通过，零错误。
+
+### Step 14 + Step 15：图片服务架构预留 + Prompt 模板（2026-02-04）
+
+**完成内容**：
+
+1. **`services/imageService.ts`**（新建 — 图片服务抽象层）：
+   - `ImageService` 接口：`getFuImage(theme: FuTheme): Promise<ImageSource>`
+   - `LocalImageService` 类：MVP 实现，直接返回 `theme.image`（即 fuThemes.ts 中 `require()` 预绑定的本地图片）
+   - `ApiImageService` 注释预留：后续接入火山引擎等第三方图片大模型 API 时实现
+   - 导出 `imageService` 默认实例（`LocalImageService`）
+
+2. **`data/promptTemplates.ts`**（新建 — AI 图片生成 Prompt 模板）：
+   - `PROMPT_PREFIX`：通用前缀（single element, centered, transparent PNG, red-gold, 8K, photorealistic）
+   - `NEGATIVE_PROMPT`：排除项（文字、人物、多元素、股票图表、低质量等）
+   - `PROMPT_TEMPLATES`：10 个符主题的完整 prompt，每条包含 `fuId`、`fuName`、`prompt`（前缀 + 主题描述）
+   - 主题描述基于产品设计文档 5.1 节的符主题定义，扩写为详细的英文图片生成描述
+   - 底部附图片质量控制清单注释（9 项检查标准）
+
+**与 tech.md 的一致性**：
+
+- `imageService.ts`：接口签名 `getFuImage(theme: FuTheme): Promise<ImageSource>` 与 tech.md Step 14 代码示例完全一致
+- `promptTemplates.ts`：通用前缀、主题描述、Negative prompt 三层结构与 tech.md Step 15 规范完全吻合
+- 10 个 fuId 与 `fuThemes.ts` 一一对应，无遗漏
 
 **TypeScript 检查**：`npx tsc --noEmit` 通过，零错误。
