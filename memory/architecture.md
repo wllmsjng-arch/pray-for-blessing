@@ -50,14 +50,14 @@
 
 | 文件 | 作用 | 状态 |
 |------|------|------|
-| `hooks/useBlessingStore.ts` | **Zustand** 全局 store（非普通 React hook），解决跨路由状态共享。包含：状态机（loading/button/descend/success/viewing）、getToday()、LCG 确定性随机、checkTodayStatus()、generateBlessing()、saveBlessing()、loadEnvelopes()、viewEnvelope()、exitViewing()、previousState 内部变量 | 待创建 |
+| `hooks/useBlessingStore.ts` | **Zustand** 全局 store（非普通 React hook），解决跨路由状态共享。包含：状态机（loading/button/descend/success/viewing）、getToday()、LCG 确定性随机、checkTodayStatus()、generateBlessing()、saveBlessing()、loadEnvelopes()、viewEnvelope()、exitViewing()、previousState 内部变量 | ✅ 已创建 |
 
 ### 数据（data/）
 
 | 文件 | 作用 | 状态 |
 |------|------|------|
-| `data/fuThemes.ts` | 10 个符主题定义：`{ id, name, image }` 数组，image 为 `require('../assets/fu/xxx.png')` | 待创建 |
-| `data/blessingTexts.ts` | 20 条祝福句字符串数组 | 待创建 |
+| `data/fuThemes.ts` | 10 个符主题定义：`{ id, name, image }` 数组，image 为 `require('../assets/fu/xxx.png')` | ✅ 已创建 |
+| `data/blessingTexts.ts` | 20 条祝福句字符串数组 | ✅ 已创建 |
 | `data/promptTemplates.ts` | AI 图片生成 Prompt 模板（后续阶段用，MVP 不调用） | 待创建 |
 
 ### 服务（services/）
@@ -70,7 +70,7 @@
 
 | 文件 | 作用 | 状态 |
 |------|------|------|
-| `constants/colors.ts` | 全局色彩方案：背景渐变、网格线、主色深红、哑光铜点缀、文字色、信封卡片色 | 待创建 |
+| `constants/colors.ts` | 全局色彩方案：背景渐变、网格线、主色深红、哑光铜点缀、文字色、信封卡片色 | ✅ 已创建 |
 
 ### 资源（assets/）
 

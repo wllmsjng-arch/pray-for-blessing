@@ -6,9 +6,9 @@
 |------|------|------|
 | Step 1 | 初始化项目 | ✅ 已完成 |
 | Step 2 | 数据定义（fuThemes / blessingTexts） | ✅ 已完成 |
-| Step 3 | 状态机框架与今日状态检查（useBlessingStore 第一部分） | 未开始 |
-| Step 4 | 随机种子与祝福生成（useBlessingStore 第二部分） | 未开始 |
-| Step 5 | 存储操作（useBlessingStore 第三部分） | 未开始 |
+| Step 3 | 状态机框架与今日状态检查（useBlessingStore 第一部分） | ✅ 已完成 |
+| Step 4 | 随机种子与祝福生成（useBlessingStore 第二部分） | ✅ 已完成 |
+| Step 5 | 存储操作（useBlessingStore 第三部分） | ✅ 已完成 |
 | Step 6 | 首页视图（index.tsx） | 未开始 |
 | Step 7 | 按钮态组件（ButtonState） | 未开始 |
 | Step 8 | 降临态 — 凝现动画（DescendState 第一部分） | 未开始 |
@@ -66,3 +66,45 @@
 5. 同步更新 `tech.md`（10 处修改）：加入 zustand 依赖、loading 初始态、LCG 参数、GridBackground/Header 组件、ViewingState 用普通 Image 等编码前讨论确认的变更
 
 **备份**：tag `task2-done`
+
+### Step 3 + Step 4 + Step 5：useBlessingStore 完整实现（2026-02-04）
+
+**完成内容**：
+
+Steps 3、4、5 均为同一文件 `hooks/useBlessingStore.ts`，一次性完成。
+
+1. **类型定义**（Step 3）：
+   - `HomeState` — 5 态联合类型：`'loading' | 'button' | 'descend' | 'success' | 'viewing'`
+   - `Envelope` — 信封记录接口：`{ id, fuId, fuName, blessingText, createdAt }`
+   - `CurrentBlessing` — 当前祝福接口：`{ fuTheme: FuTheme, blessingText: string, date: string }`
+
+2. **工具函数**（Step 3 + 4）：
+   - `getToday()` — 设备本地时区日期，格式 `YYYY-MM-DD`，全局唯一日期源
+   - `createLCG(seed)` — 线性同余生成器，参数 `a=1664525, c=1013904223, m=2^32`
+
+3. **Zustand store**（Step 3）：
+   - 状态字段：`homeState`（初始 `'loading'`）、`currentBlessing`、`selectedEnvelope`、`isFromDescend`
+   - 模块级 `previousState` 内部变量，不暴露给外部
+
+4. **checkTodayStatus()**（Step 3）：
+   - 异步读取 AsyncStorage，按优先级 `blessed_` → `generated_` → 无标记 切换 homeState
+   - `generated_` 存在时调用 `generateBlessing()` 还原当日数据
+
+5. **generateBlessing()**（Step 4）：
+   - 以 `parseInt(getToday().replace(/-/g,''))` 为种子，LCG 两次取随机 → `fuIndex`（0-9）+ `blessingIndex`（0-19）
+   - 设置 `currentBlessing` + `homeState='descend'`
+   - Fire-and-forget 写入 `generated_` 标记
+
+6. **saveBlessing()**（Step 5）：
+   - 从 `currentBlessing` 构造 `Envelope`，追加到 AsyncStorage `envelopes` 数组（幂等保护）
+   - 写入 `blessed_` 标记
+
+7. **loadEnvelopes()**（Step 5）：
+   - 读取 AsyncStorage 全部信封，按时间倒序返回
+
+8. **viewEnvelope() / exitViewing()**（Step 3）：
+   - 进入回看态记录 `previousState`，退出时恢复
+
+**与 tech.md 的一致性**：完全一致，无差异。所有函数签名、状态字段、存储键格式、LCG 参数均与 tech.md 核心定义速查章节吻合。
+
+**TypeScript 检查**：`npx tsc --noEmit` 通过，无自身类型错误（仅 node_modules 内部类型冲突，属 Expo 项目常见现象）。
