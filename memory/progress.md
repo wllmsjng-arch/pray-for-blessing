@@ -9,7 +9,7 @@
 | Step 3 | 状态机框架与今日状态检查（useBlessingStore 第一部分） | ✅ 已完成 |
 | Step 4 | 随机种子与祝福生成（useBlessingStore 第二部分） | ✅ 已完成 |
 | Step 5 | 存储操作（useBlessingStore 第三部分） | ✅ 已完成 |
-| Step 6 | 首页视图（index.tsx） | 未开始 |
+| Step 6 | 首页视图（index.tsx） | ✅ 已完成 |
 | Step 7 | 按钮态组件（ButtonState） | 未开始 |
 | Step 8 | 降临态 — 凝现动画（DescendState 第一部分） | 未开始 |
 | Step 9 | 降临态 — 收纳动画与保存（DescendState 第二部分） | 未开始 |
@@ -108,3 +108,47 @@ Steps 3、4、5 均为同一文件 `hooks/useBlessingStore.ts`，一次性完成
 **与 tech.md 的一致性**：完全一致，无差异。所有函数签名、状态字段、存储键格式、LCG 参数均与 tech.md 核心定义速查章节吻合。
 
 **TypeScript 检查**：`npx tsc --noEmit` 通过，无自身类型错误（仅 node_modules 内部类型冲突，属 Expo 项目常见现象）。
+
+### Step 6：首页视图 + 基础组件（2026-02-04）
+
+**完成内容**：
+
+1. **`app/_layout.tsx`** — 根布局：
+   - Stack 导航器，`headerShown: false`（全局隐藏原生导航栏）
+   - `index` 路由 + `envelope` 路由（`presentation: 'modal'`，iOS 底部弹出卡片式模态）
+   - `StatusBar style="dark"`（深色文字状态栏，匹配暖白背景）
+
+2. **`app/index.tsx`** — 首页主视图：
+   - `SplashScreen.preventAutoHideAsync()` 模块级调用，启动时保持启动屏
+   - `useEffect` 中调用 `checkTodayStatus()`，完成后 `SplashScreen.hideAsync()`（启动屏 → 首页无缝过渡）
+   - `homeState === 'loading'` 时仅渲染暖白渐变（与启动屏背景色 `#F7F4F0` 一致，无闪烁）
+   - 其余状态渲染：`GridBackground` + `Header` + 状态组件条件切换
+   - 状态组件分发：`button → <ButtonState />`、`descend → <DescendState />`、`success → <SuccessState animated={isFromDescend} />`、`viewing → <ViewingState envelope={selectedEnvelope} />`
+
+3. **`components/GridBackground.tsx`** — 宣纸网格纹理：
+   - `Dimensions.get('window')` 计算屏幕尺寸，生成垂直 + 水平线条数组
+   - 线色 `COLORS.grid`（`rgba(180,170,160,0.06)`），线宽 `StyleSheet.hairlineWidth`，间距 40px
+   - `StyleSheet.absoluteFill` + `pointerEvents="none"` 覆盖全屏且不阻挡触摸
+
+4. **`components/Header.tsx`** — 顶部栏：
+   - 左侧：产品名「红意」（18px, medium weight）+ 今日日期小字（12px, 温灰色）
+   - 右侧：viewing 态显示「返回」（调用 `exitViewing()`），其余态显示「红意信封」（`router.push('/envelope')`）
+   - `useSafeAreaInsets()` 适配刘海屏安全区域
+   - 使用 Zustand selector `useBlessingStore(s => s.homeState)` 精确订阅
+
+5. **占位组件**（为 index.tsx 编译通过而创建，后续 Task 完整实现）：
+   - `components/ButtonState.tsx` — 占位，Task 5 替换
+   - `components/DescendState.tsx` — 占位，Task 5 替换
+   - `components/SuccessState.tsx` — 占位，Props 接口 `{ animated: boolean }` 已就绪
+   - `components/ViewingState.tsx` — 占位，Props 接口 `{ envelope: Envelope }` 已就绪
+   - `app/envelope.tsx` — 占位，Task 6 替换
+
+**与 tech.md 的一致性**：
+
+- `_layout.tsx`：与 tech.md Step 11 中 `presentation: 'modal'` 描述一致
+- `index.tsx`：与 tech.md Step 6 代码示例结构一致，新增了 `SplashScreen` 管理（tech.md 未提及，属于实现优化，确保启动屏 → 首页无缝过渡）
+- `GridBackground.tsx`：线色、间距与 tech.md Step 6 背景设计完全一致
+- `Header.tsx`：与 tech.md 中各状态的「右上角入口」描述一致（三态常驻「红意信封」，回看态显示「返回」）
+- 占位组件的 Props 接口与 tech.md 核心定义速查中的组件 Props 接口完全匹配
+
+**TypeScript 检查**：`npx tsc --noEmit` 通过，零错误。
