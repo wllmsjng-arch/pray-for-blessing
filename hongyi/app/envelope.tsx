@@ -30,7 +30,11 @@ export default function EnvelopePage() {
     >
       {/* 顶部栏 */}
       <View style={styles.header}>
-        <Text style={styles.title}>红意信封</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>红意信封</Text>
+          {/* 标题下方装饰线 */}
+          <View style={styles.titleDecorLine} />
+        </View>
         <TouchableOpacity
           onPress={() => router.back()}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -72,14 +76,25 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
+  titleContainer: {
+    alignItems: 'flex-start',
+  },
   title: {
-    fontSize: 18,
-    fontWeight: '500',
+    fontSize: 20,
+    fontWeight: '300',
     color: COLORS.text,
+    letterSpacing: 3,
+  },
+  titleDecorLine: {
+    width: 32,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(201,169,110,0.25)',
+    marginTop: 12,
+    marginBottom: 4,
   },
   closeText: {
     fontSize: 14,

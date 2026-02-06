@@ -22,6 +22,8 @@ export default function EnvelopeCard({ envelope, onPress }: Props) {
         end={{ x: 1, y: 0 }}
         style={styles.card}
       >
+        {/* 左侧红点装饰 */}
+        <View style={styles.redDot} />
         <Text style={styles.date}>{displayDate}</Text>
         <View style={styles.textWrapper}>
           <Text
@@ -53,17 +55,26 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginVertical: 6,
     borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(139,58,58,0.06)',
     shadowColor: 'rgb(107,45,45)',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
   },
+  redDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(139,58,58,0.25)',
+    marginRight: 8,
+  },
   date: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.textMuted,
-    fontWeight: '400',
-    width: 50,
+    fontWeight: '300',
+    width: 42,
   },
   textWrapper: {
     flex: 1,

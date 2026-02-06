@@ -20,16 +20,24 @@ export default function ViewingState({ envelope }: Props) {
     <View style={styles.container}>
       {/* 主内容居中 */}
       <View style={styles.center}>
-        {/* 符图片：静态展示，无凝现动画，无漂浮 */}
-        {fuTheme && (
-          <Image
-            source={fuTheme.image as any}
-            style={styles.fuImage}
-            resizeMode="contain"
-          />
-        )}
-        {/* 祝福句：直接显示，无淡入 */}
-        <Text style={styles.blessingText}>{envelope.blessingText}</Text>
+        {/* 符图片：静态展示，带光晕 */}
+        <View style={styles.fuWrapper}>
+          {/* 静态光晕层 */}
+          <View style={styles.glow} />
+          {fuTheme && (
+            <Image
+              source={fuTheme.image as any}
+              style={styles.fuImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+        {/* 祝福句：带装饰线 */}
+        <View style={styles.blessingRow}>
+          <View style={styles.decorLine} />
+          <Text style={styles.blessingText}>{envelope.blessingText}</Text>
+          <View style={styles.decorLine} />
+        </View>
       </View>
 
       {/* 日期：页面下方，温灰色小字 */}
@@ -49,16 +57,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  fuWrapper: {
+    width: 280,
+    height: 280,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  glow: {
+    position: 'absolute',
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'rgba(139,58,58,0.05)',
+  },
   fuImage: {
     width: 220,
     height: 220,
+  },
+  blessingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 32,
+  },
+  decorLine: {
+    width: 20,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(201,169,110,0.2)',
+    marginHorizontal: 12,
   },
   blessingText: {
     fontSize: 17,
     color: COLORS.blessing,
     fontWeight: '400',
     letterSpacing: 2,
-    marginTop: 32,
   },
   date: {
     fontSize: 13,

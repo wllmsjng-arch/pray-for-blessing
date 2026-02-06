@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import { COLORS } from '../constants/colors';
 
-const GRID_SPACING = 40;
+const GRID_SPACING = 48;
 
 export default function GridBackground() {
   const { width, height } = Dimensions.get('window');

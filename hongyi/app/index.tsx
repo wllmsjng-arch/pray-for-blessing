@@ -34,6 +34,8 @@ export default function Home() {
 
   return (
     <LinearGradient colors={[...COLORS.background]} style={styles.container}>
+      {/* 中心暖光晕层 */}
+      <View style={styles.centerGlow} pointerEvents="none" />
       <GridBackground />
       <Header />
       <View style={styles.content}>
@@ -53,6 +55,16 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centerGlow: {
+    position: 'absolute',
+    top: '30%',
+    left: '50%',
+    marginLeft: -160,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(168,98,64,0.04)',
   },
   content: {
     flex: 1,

@@ -29,6 +29,8 @@ export default function ButtonState() {
           <Text style={styles.text}>请红意</Text>
         </LinearGradient>
       </TouchableOpacity>
+      {/* 按钮下方装饰线 */}
+      <View style={styles.decorLine} />
     </View>
   );
 }
@@ -60,5 +62,13 @@ const styles = StyleSheet.create({
     color: COLORS.textOnButton,
     fontWeight: '400',
     letterSpacing: 4,
+  },
+  decorLine: {
+    width: 40,
+    height: StyleSheet.hairlineWidth * 2,
+    backgroundColor: 'rgba(201,169,110,0.25)',
+    borderRadius: 0.5,
+    marginTop: 28,
+    alignSelf: 'center',
   },
 });

@@ -25,4 +25,24 @@ export const COLORS = {
 
   // 祝福句文字色
   blessing: '#6B2D2D',
+
+  // === UI 优化新增色彩 ===
+  // 符图周围暖光晕
+  glow: 'rgba(168,98,64,0.06)',
+  // 符图内层红色光晕
+  glowInner: 'rgba(139,58,58,0.08)',
+  // 檀烟粒子色
+  incense: 'rgba(166,124,91,0.12)',
+  // 金箔装饰
+  goldLeaf: '#C9A96E',
+  // 金箔淡化版
+  goldLeafMuted: 'rgba(201,169,110,0.15)',
+  // 朱印深红
+  sealRed: '#8B2500',
+  // 纸纤维纹理
+  paperFiber: 'rgba(180,170,160,0.04)',
+  // 卡片极淡红描边
+  cardBorder: 'rgba(139,58,58,0.06)',
+  // 成功态微红底色
+  successBg: 'rgba(107,45,45,0.03)',
 };
