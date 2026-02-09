@@ -1,5 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { Envelope } from '../hooks/useBlessingStore';
 import { FU_THEMES } from '../data/fuThemes';
 import { COLORS } from '../constants/colors';
@@ -12,6 +20,24 @@ export default function ViewingState({ envelope }: Props) {
   // 通过 fuId 查找符主题，获取图片
   const fuTheme = FU_THEMES.find((t) => t.id === envelope.fuId);
 
+  // 光晕缓呼吸动画（回看态：只做 scale，不做 opacity 闪烁）
+  const glowScale = useSharedValue(1);
+
+  useEffect(() => {
+    glowScale.value = withRepeat(
+      withSequence(
+        withTiming(1.05, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1.0, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1,
+      false,
+    );
+  }, []);
+
+  const glowPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: glowScale.value }],
+  }));
+
   // 日期格式 YYYY/M/D（不补零，如 2026/2/2）
   const [y, m, d] = envelope.createdAt.split('-');
   const displayDate = `${y}/${parseInt(m)}/${parseInt(d)}`;
@@ -22,8 +48,14 @@ export default function ViewingState({ envelope }: Props) {
       <View style={styles.center}>
         {/* 符图片：静态展示，带光晕 */}
         <View style={styles.fuWrapper}>
-          {/* 静态光晕层 */}
-          <View style={styles.glow} />
+          {/* 装饰光晕层：PNG图片 + 缓呼吸动画 */}
+          <View style={styles.glowContainer}>
+            <Animated.Image
+              source={require('../assets/ember-glow.png')}
+              style={[styles.glowImage, glowPulseStyle]}
+              resizeMode="cover"
+            />
+          </View>
           {fuTheme && (
             <Image
               source={fuTheme.image as any}
@@ -58,17 +90,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fuWrapper: {
-    width: 280,
-    height: 280,
+    width: 260,
+    height: 260,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  glow: {
+  glowContainer: {
     position: 'absolute',
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    backgroundColor: 'rgba(139,58,58,0.05)',
+    width: 260,
+    height: 260,
+    overflow: 'hidden',
+    borderRadius: 130,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  glowImage: {
+    width: 260,
+    height: 260,
+    opacity: 0.6,
   },
   fuImage: {
     width: 220,
