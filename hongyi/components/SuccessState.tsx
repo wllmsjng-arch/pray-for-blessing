@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -73,9 +73,13 @@ export default function SuccessState({ animated }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* 朱印装饰 */}
-      <Animated.View style={[styles.seal, sealStyle]}>
-        <Text style={styles.sealText}>福</Text>
+      {/* 朱印：真实印章图片 */}
+      <Animated.View style={[styles.sealWrapper, sealStyle]}>
+        <Image
+          source={require('../assets/seal.png')}
+          style={styles.sealImage}
+          resizeMode="contain"
+        />
       </Animated.View>
 
       <Animated.Text style={[styles.title, titleStyle]}>
@@ -98,21 +102,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  seal: {
-    width: 64,
-    height: 64,
-    borderWidth: 2,
-    borderColor: 'rgba(139,45,0,0.18)',
-    borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
+  sealWrapper: {
     marginBottom: 32,
     transform: [{ rotate: '-3deg' }],
   },
-  sealText: {
-    fontSize: 28,
-    fontWeight: '300',
-    color: 'rgba(139,45,0,0.22)',
+  sealImage: {
+    width: 80,
+    height: 80,
   },
   title: {
     fontSize: 24,

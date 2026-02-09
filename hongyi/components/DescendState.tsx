@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   withDelay,
-  withRepeat,
-  withSequence,
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
@@ -23,13 +21,6 @@ export default function DescendState() {
   // Phase 1: 凝现动画（符图片 opacity + scale）
   const fuOpacity = useSharedValue(0);
   const fuScale = useSharedValue(0.92);
-
-  // 光晕动画（比符图凝现慢 300ms）
-  const glowOpacity = useSharedValue(0);
-
-  // 光晕闪烁动画（双层：scale 脉冲 + opacity 明灭）
-  const glowScale = useSharedValue(1);
-  const glowFlicker = useSharedValue(1);
 
   // Phase 2: 祝福句淡入（+2000ms）
   const textOpacity = useSharedValue(0);
@@ -55,41 +46,6 @@ export default function DescendState() {
       duration: 1200,
       easing: Easing.out(Easing.quad),
     });
-
-    // 光晕：比符图凝现慢 300ms，1500ms, easeOut
-    glowOpacity.value = withDelay(
-      300,
-      withTiming(1, {
-        duration: 1500,
-        easing: Easing.out(Easing.quad),
-      })
-    );
-
-    // 光晕闪烁 — 凝现完成后启动无限循环
-    // 层1: scale 脉冲（火星向外微微飘散）
-    glowScale.value = withDelay(
-      1800,
-      withRepeat(
-        withSequence(
-          withTiming(1.08, { duration: 3000, easing: Easing.inOut(Easing.sin) }),
-          withTiming(1.0, { duration: 3000, easing: Easing.inOut(Easing.sin) }),
-        ),
-        -1,
-        false,
-      )
-    );
-    // 层2: opacity 明灭（火星忽明忽暗）
-    glowFlicker.value = withDelay(
-      1800,
-      withRepeat(
-        withSequence(
-          withTiming(0.75, { duration: 2000, easing: Easing.inOut(Easing.quad) }),
-          withTiming(1.0, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
-        ),
-        -1,
-        false,
-      )
-    );
 
     // Phase 2: 祝福句 — 符落定 800ms 后淡入，opacity 0→1 + translateY 8→0, 800ms
     textOpacity.value = withDelay(2000, withTiming(1, { duration: 800 }));
@@ -135,17 +91,6 @@ export default function DescendState() {
     transform: [{ scale: fuScale.value }],
   }));
 
-  // 光晕凝现动画样式
-  const glowAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
-  }));
-
-  // 光晕闪烁动画样式（scale + opacity 叠加）
-  const glowPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: glowScale.value }],
-    opacity: glowFlicker.value,
-  }));
-
   // 祝福句淡入样式
   const textAnimatedStyle = useAnimatedStyle(() => ({
     opacity: textOpacity.value,
@@ -167,21 +112,10 @@ export default function DescendState() {
 
   return (
     <Animated.View style={[styles.container, containerAnimatedStyle]}>
-      {/* 符图片：凝现 + 光晕 */}
-      <View style={styles.fuWrapper}>
-        {/* 装饰光晕层：PNG图片 + 闪烁动画 */}
-        <Animated.View style={[styles.glowContainer, glowAnimatedStyle]}>
-          <Animated.Image
-            source={require('../assets/ember-glow.png')}
-            style={[styles.glowImage, glowPulseStyle]}
-            resizeMode="cover"
-          />
-        </Animated.View>
-        {/* 符图片 */}
-        <Animated.View style={fuAnimatedStyle}>
-          <FuImage theme={currentBlessing.fuTheme} />
-        </Animated.View>
-      </View>
+      {/* 符图片：凝现 */}
+      <Animated.View style={fuAnimatedStyle}>
+        <FuImage theme={currentBlessing.fuTheme} />
+      </Animated.View>
 
       {/* 祝福句（带装饰线） */}
       <Animated.View style={[styles.textContainer, textAnimatedStyle]}>
@@ -212,26 +146,6 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  fuWrapper: {
-    width: 260,
-    height: 260,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  glowContainer: {
-    position: 'absolute',
-    width: 260,
-    height: 260,
-    overflow: 'hidden',
-    borderRadius: 130,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  glowImage: {
-    width: 260,
-    height: 260,
-    opacity: 0.6,
   },
   textContainer: {
     marginTop: 32,
