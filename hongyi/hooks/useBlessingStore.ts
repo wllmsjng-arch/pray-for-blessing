@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FuTheme, FU_THEMES } from '../data/fuThemes';
 import { BLESSING_TEXTS } from '../data/blessingTexts';
+import { BranchTheme, BRANCH_THEMES } from '../data/branchThemes';
 
 // ==================== 类型定义 ====================
 
@@ -13,12 +14,14 @@ export interface Envelope {
   fuName: string;
   blessingText: string;
   createdAt: string;
+  branchId?: string;
 }
 
 export interface CurrentBlessing {
   fuTheme: FuTheme;
   blessingText: string;
   date: string;
+  branchTheme: BranchTheme;
 }
 
 // ==================== 工具函数 ====================
@@ -33,7 +36,7 @@ export function getToday(): string {
 }
 
 /** LCG 线性同余生成器 (a=1664525, c=1013904223, m=2^32) */
-function createLCG(seed: number) {
+export function createLCG(seed: number) {
   let s = seed;
   return () => {
     s = (1664525 * s + 1013904223) % 4294967296;
@@ -98,12 +101,14 @@ export const useBlessingStore = create<BlessingStore>((set, get) => ({
 
     const fuIndex = Math.floor(random() * FU_THEMES.length);
     const blessingIndex = Math.floor(random() * BLESSING_TEXTS.length);
+    const branchIndex = Math.floor(random() * BRANCH_THEMES.length);
 
     set({
       currentBlessing: {
         fuTheme: FU_THEMES[fuIndex],
         blessingText: BLESSING_TEXTS[blessingIndex],
         date: today,
+        branchTheme: BRANCH_THEMES[branchIndex],
       },
       homeState: 'descend',
     });
@@ -131,6 +136,7 @@ export const useBlessingStore = create<BlessingStore>((set, get) => ({
         fuName: currentBlessing.fuTheme.name,
         blessingText: currentBlessing.blessingText,
         createdAt: today,
+        branchId: currentBlessing.branchTheme.id,
       });
       await AsyncStorage.setItem('envelopes', JSON.stringify(envelopes));
     }

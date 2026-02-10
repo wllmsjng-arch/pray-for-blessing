@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, Image, StyleSheet, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -11,7 +11,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
-import { useBlessingStore } from '../hooks/useBlessingStore';
+import { useBlessingStore, createLCG } from '../hooks/useBlessingStore';
+import { BranchTheme, BRANCH_THEMES } from '../data/branchThemes';
 import { COLORS } from '../constants/colors';
 import GridBackground from '../components/GridBackground';
 import Header from '../components/Header';
@@ -24,14 +25,12 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 // 花枝尺寸计算
 const BRANCH_W = SCREEN_W * 0.55;
-const LEFT_H = BRANCH_W * (362 / 542);
-const RIGHT_H = BRANCH_W * (1024 / 1536);
 const CENTER_GAP = 30; // 花枝到中轴线的间距
 
 SplashScreen.preventAutoHideAsync();
 
 export default function Home() {
-  const { homeState, isFromDescend, selectedEnvelope, checkTodayStatus } =
+  const { homeState, isFromDescend, selectedEnvelope, currentBlessing, checkTodayStatus } =
     useBlessingStore();
 
   // 花枝装饰动画
@@ -41,7 +40,29 @@ export default function Home() {
   const rightRotate = useSharedValue(0);
   const rightScale = useSharedValue(1);
 
-  const showBranches = homeState === 'descend' || homeState === 'viewing';
+  // 确定当前应显示的花枝
+  const activeBranch: BranchTheme | null = useMemo(() => {
+    if (homeState === 'descend' && currentBlessing) {
+      return currentBlessing.branchTheme;
+    }
+    if (homeState === 'viewing' && selectedEnvelope) {
+      if (selectedEnvelope.branchId) {
+        return BRANCH_THEMES.find(b => b.id === selectedEnvelope.branchId) ?? BRANCH_THEMES[0];
+      }
+      // 兼容旧数据：用日期种子重算
+      const seed = parseInt(selectedEnvelope.createdAt.replace(/-/g, ''), 10);
+      const random = createLCG(seed);
+      random(); // fuIndex
+      random(); // blessingIndex
+      const branchIndex = Math.floor(random() * BRANCH_THEMES.length);
+      return BRANCH_THEMES[branchIndex];
+    }
+    return null;
+  }, [homeState, currentBlessing, selectedEnvelope]);
+
+  const showBranches = activeBranch !== null;
+  const leftH = activeBranch ? BRANCH_W * activeBranch.aspectLeft : 0;
+  const rightH = activeBranch ? BRANCH_W * activeBranch.aspectRight : 0;
 
   useEffect(() => {
     checkTodayStatus().then(() => {
@@ -122,20 +143,30 @@ export default function Home() {
       <GridBackground />
 
       {/* 花枝装饰层：贴屏幕左右两侧，上下错落 */}
-      <Animated.View style={[styles.branchLayer, branchFadeStyle]} pointerEvents="none">
-        {/* 左侧花枝 — 贴左边缘，偏上 */}
-        <Animated.Image
-          source={require('../assets/branch-left.png')}
-          style={[styles.branchLeft, leftSwayStyle]}
-          resizeMode="contain"
-        />
-        {/* 右侧花枝（反转对称）— 贴右边缘，偏下 */}
-        <Animated.Image
-          source={require('../assets/branch-right.png')}
-          style={[styles.branchRight, rightSwayStyle]}
-          resizeMode="contain"
-        />
-      </Animated.View>
+      {activeBranch && (
+        <Animated.View style={[styles.branchLayer, branchFadeStyle]} pointerEvents="none">
+          <Animated.Image
+            source={activeBranch.left}
+            style={[styles.branchBase, {
+              left: -20,
+              top: SCREEN_H / 2 - CENTER_GAP - leftH,
+              width: BRANCH_W,
+              height: leftH,
+            }, leftSwayStyle]}
+            resizeMode="contain"
+          />
+          <Animated.Image
+            source={activeBranch.right}
+            style={[styles.branchBase, {
+              right: -20,
+              top: SCREEN_H / 2 + CENTER_GAP,
+              width: BRANCH_W,
+              height: rightH,
+            }, rightSwayStyle]}
+            resizeMode="contain"
+          />
+        </Animated.View>
+      )}
 
       <Header />
       <View style={styles.content}>
@@ -160,25 +191,14 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     width: SCREEN_W,
     height: SCREEN_H,
-    opacity: 0.15,
+    opacity: 0.1,
   },
   branchLayer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 1,
   },
-  branchLeft: {
+  branchBase: {
     position: 'absolute',
-    left: -20,
-    top: SCREEN_H / 2 - CENTER_GAP - LEFT_H,
-    width: BRANCH_W,
-    height: LEFT_H,
-  },
-  branchRight: {
-    position: 'absolute',
-    right: -20,
-    top: SCREEN_H / 2 + CENTER_GAP,
-    width: BRANCH_W,
-    height: RIGHT_H,
   },
   content: {
     flex: 1,
