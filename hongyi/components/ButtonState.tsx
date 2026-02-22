@@ -3,6 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useBlessingStore } from '../hooks/useBlessingStore';
 import { COLORS } from '../constants/colors';
+import ButtonGlow from './ButtonGlow';
+import ButtonSheen from './ButtonSheen';
+import DecorLineSheen from './DecorLineSheen';
+import IncenseSmoke from './IncenseSmoke';
 
 export default function ButtonState() {
   const generateBlessing = useBlessingStore((s) => s.generateBlessing);
@@ -16,27 +20,48 @@ export default function ButtonState() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        onPress={handlePress}
-        disabled={disabled}
-        activeOpacity={0.85}
-      >
-        <LinearGradient
-          colors={[COLORS.primary, COLORS.primaryLight]}
-          style={styles.button}
+      {/* 按钮 + 光晕区域 */}
+      <View style={styles.buttonWrapper}>
+        {/* Layer 0: 按钮外发光（最底层） */}
+        <ButtonGlow />
+
+        {/* Layer 1: 按钮本体 */}
+        <TouchableOpacity
+          onPress={handlePress}
+          disabled={disabled}
+          activeOpacity={0.85}
         >
-          <View style={styles.highlight} />
-          <Text style={styles.text}>请红意</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-      {/* 按钮下方装饰线 */}
-      <View style={styles.decorLine} />
+          <LinearGradient
+            colors={[COLORS.primary, COLORS.primaryLight]}
+            style={styles.button}
+          >
+            {/* Layer 1a: 微透明白色蒙版 */}
+            <View style={styles.highlight} />
+
+            {/* Layer 1b: 斜向高光扫过（被按钮 overflow:hidden + borderRadius 裁切） */}
+            <ButtonSheen />
+
+            {/* Layer 1c: 按钮文字（最上层） */}
+            <Text style={styles.text}>请红意</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+
+      {/* Layer 2: 装饰线 + 光泽扫过 */}
+      <DecorLineSheen />
+
+      {/* Layer 3: 檀烟烟道 + 粒子 */}
+      <IncenseSmoke />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonWrapper: {
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -62,13 +87,5 @@ const styles = StyleSheet.create({
     color: COLORS.textOnButton,
     fontWeight: '400',
     letterSpacing: 4,
-  },
-  decorLine: {
-    width: 40,
-    height: StyleSheet.hairlineWidth * 2,
-    backgroundColor: 'rgba(201,169,110,0.25)',
-    borderRadius: 0.5,
-    marginTop: 28,
-    alignSelf: 'center',
   },
 });
