@@ -13,21 +13,21 @@ import Animated, {
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Stop, Path } from 'react-native-svg';
 
 // --- 画布尺寸 ---
-const CANVAS_W = 76;
+const CANVAS_W = 151;
 const CANVAS_H = 90;
 
-// 6条烟道等间距10px，严格居中于76px画布
-// 起点x: 13, 23, 33, 43, 53, 63（烟道群中心 = 38 = 76/2）
+// 6条烟道等间距25px，严格居中于151px画布
+// 起点x: 13, 38, 63, 88, 113, 138（烟道群中心 = 75.5 = 151/2）
 
 // --- 烟道路径定义 ---
 // 左三条：S形（先左弯后右弯）
 const PATH_L1 = 'M 13 85 C 5 65, 21 45, 10 5';
-const PATH_L2 = 'M 23 85 C 15 65, 31 45, 20 5';
-const PATH_L3 = 'M 33 85 C 25 65, 41 45, 30 5';
+const PATH_L2 = 'M 38 85 C 30 65, 46 45, 35 5';
+const PATH_L3 = 'M 63 85 C 55 65, 71 45, 60 5';
 // 右三条：反S形（先右弯后左弯）
-const PATH_R1 = 'M 43 85 C 51 65, 35 45, 46 5';
-const PATH_R2 = 'M 53 85 C 61 65, 45 45, 56 5';
-const PATH_R3 = 'M 63 85 C 71 65, 55 45, 66 5';
+const PATH_R1 = 'M 88 85 C 96 65, 80 45, 91 5';
+const PATH_R2 = 'M 113 85 C 121 65, 105 45, 116 5';
+const PATH_R3 = 'M 138 85 C 146 65, 130 45, 141 5';
 
 // --- 贝塞尔控制点（用于粒子位置计算） ---
 interface BezierCurve {
@@ -37,12 +37,12 @@ interface BezierCurve {
   p3: { x: number; y: number };
 }
 
-const CURVE_L1: BezierCurve = { p0: { x: 13, y: 85 }, p1: { x: 5,  y: 65 }, p2: { x: 21, y: 45 }, p3: { x: 10, y: 5 } };
-const CURVE_L2: BezierCurve = { p0: { x: 23, y: 85 }, p1: { x: 15, y: 65 }, p2: { x: 31, y: 45 }, p3: { x: 20, y: 5 } };
-const CURVE_L3: BezierCurve = { p0: { x: 33, y: 85 }, p1: { x: 25, y: 65 }, p2: { x: 41, y: 45 }, p3: { x: 30, y: 5 } };
-const CURVE_R1: BezierCurve = { p0: { x: 43, y: 85 }, p1: { x: 51, y: 65 }, p2: { x: 35, y: 45 }, p3: { x: 46, y: 5 } };
-const CURVE_R2: BezierCurve = { p0: { x: 53, y: 85 }, p1: { x: 61, y: 65 }, p2: { x: 45, y: 45 }, p3: { x: 56, y: 5 } };
-const CURVE_R3: BezierCurve = { p0: { x: 63, y: 85 }, p1: { x: 71, y: 65 }, p2: { x: 55, y: 45 }, p3: { x: 66, y: 5 } };
+const CURVE_L1: BezierCurve = { p0: { x: 13,  y: 85 }, p1: { x: 5,   y: 65 }, p2: { x: 21,  y: 45 }, p3: { x: 10,  y: 5 } };
+const CURVE_L2: BezierCurve = { p0: { x: 38,  y: 85 }, p1: { x: 30,  y: 65 }, p2: { x: 46,  y: 45 }, p3: { x: 35,  y: 5 } };
+const CURVE_L3: BezierCurve = { p0: { x: 63,  y: 85 }, p1: { x: 55,  y: 65 }, p2: { x: 71,  y: 45 }, p3: { x: 60,  y: 5 } };
+const CURVE_R1: BezierCurve = { p0: { x: 88,  y: 85 }, p1: { x: 96,  y: 65 }, p2: { x: 80,  y: 45 }, p3: { x: 91,  y: 5 } };
+const CURVE_R2: BezierCurve = { p0: { x: 113, y: 85 }, p1: { x: 121, y: 65 }, p2: { x: 105, y: 45 }, p3: { x: 116, y: 5 } };
+const CURVE_R3: BezierCurve = { p0: { x: 138, y: 85 }, p1: { x: 146, y: 65 }, p2: { x: 130, y: 45 }, p3: { x: 141, y: 5 } };
 
 // --- 三次贝塞尔插值 ---
 function cubicBezierPoint(t: number, curve: BezierCurve) {
