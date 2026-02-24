@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   container: {
     width: CANVAS_W,
     height: CANVAS_H,
-    marginTop: 12,
+    marginTop: 6,
     alignSelf: 'center',
   },
   svg: {

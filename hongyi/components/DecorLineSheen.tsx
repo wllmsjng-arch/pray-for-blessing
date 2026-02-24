@@ -23,7 +23,7 @@ const LINE_H = 5;            // 线条高度（纤细）
 const LINE_R = LINE_H / 2;   // 圆角半径
 
 // --- bloom 区域 ---
-const BLOOM_H = 50;          // bloom 垂直高度（模拟 feGaussianBlur stdDeviation=14）
+const BLOOM_H = 32;          // bloom 垂直高度（模拟 feGaussianBlur stdDeviation=14）
 const BLOOM_EXTRA_W = 6;     // bloom 水平方向额外宽度（缩小，减少超出线条后的矩形块宽度）
 
 // --- 光泽带尺寸（渐变本体） ---
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   outerContainer: {
     width: LINE_W,
     height: BLOOM_H,
-    marginTop: 24,
+    marginTop: 14,
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
