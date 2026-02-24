@@ -13,14 +13,21 @@ import Animated, {
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Stop, Path } from 'react-native-svg';
 
 // --- 画布尺寸 ---
-const CANVAS_W = 50;
+const CANVAS_W = 76;
 const CANVAS_H = 90;
 
+// 6条烟道等间距10px，严格居中于76px画布
+// 起点x: 13, 23, 33, 43, 53, 63（烟道群中心 = 38 = 76/2）
+
 // --- 烟道路径定义 ---
-// 左烟道：轻微 S 形
-const LEFT_PATH = 'M 20 85 C 12 65, 28 45, 17 5';
-// 右烟道：反 S 形
-const RIGHT_PATH = 'M 30 85 C 38 60, 22 40, 33 5';
+// 左三条：S形（先左弯后右弯）
+const PATH_L1 = 'M 13 85 C 5 65, 21 45, 10 5';
+const PATH_L2 = 'M 23 85 C 15 65, 31 45, 20 5';
+const PATH_L3 = 'M 33 85 C 25 65, 41 45, 30 5';
+// 右三条：反S形（先右弯后左弯）
+const PATH_R1 = 'M 43 85 C 51 65, 35 45, 46 5';
+const PATH_R2 = 'M 53 85 C 61 65, 45 45, 56 5';
+const PATH_R3 = 'M 63 85 C 71 65, 55 45, 66 5';
 
 // --- 贝塞尔控制点（用于粒子位置计算） ---
 interface BezierCurve {
@@ -30,19 +37,12 @@ interface BezierCurve {
   p3: { x: number; y: number };
 }
 
-const LEFT_CURVE: BezierCurve = {
-  p0: { x: 20, y: 85 },
-  p1: { x: 12, y: 65 },
-  p2: { x: 28, y: 45 },
-  p3: { x: 17, y: 5 },
-};
-
-const RIGHT_CURVE: BezierCurve = {
-  p0: { x: 30, y: 85 },
-  p1: { x: 38, y: 60 },
-  p2: { x: 22, y: 40 },
-  p3: { x: 33, y: 5 },
-};
+const CURVE_L1: BezierCurve = { p0: { x: 13, y: 85 }, p1: { x: 5,  y: 65 }, p2: { x: 21, y: 45 }, p3: { x: 10, y: 5 } };
+const CURVE_L2: BezierCurve = { p0: { x: 23, y: 85 }, p1: { x: 15, y: 65 }, p2: { x: 31, y: 45 }, p3: { x: 20, y: 5 } };
+const CURVE_L3: BezierCurve = { p0: { x: 33, y: 85 }, p1: { x: 25, y: 65 }, p2: { x: 41, y: 45 }, p3: { x: 30, y: 5 } };
+const CURVE_R1: BezierCurve = { p0: { x: 43, y: 85 }, p1: { x: 51, y: 65 }, p2: { x: 35, y: 45 }, p3: { x: 46, y: 5 } };
+const CURVE_R2: BezierCurve = { p0: { x: 53, y: 85 }, p1: { x: 61, y: 65 }, p2: { x: 45, y: 45 }, p3: { x: 56, y: 5 } };
+const CURVE_R3: BezierCurve = { p0: { x: 63, y: 85 }, p1: { x: 71, y: 65 }, p2: { x: 55, y: 45 }, p3: { x: 66, y: 5 } };
 
 // --- 三次贝塞尔插值 ---
 function cubicBezierPoint(t: number, curve: BezierCurve) {
@@ -70,27 +70,37 @@ function cubicBezierTangent(t: number, curve: BezierCurve) {
     3 * u * u * (curve.p1.y - curve.p0.y) +
     6 * u * t * (curve.p2.y - curve.p1.y) +
     3 * t * t * (curve.p3.y - curve.p2.y);
-  // 返回角度（弧度→度）
-  return Math.atan2(dx, -dy) * (180 / Math.PI); // 注意 y 轴向下
+  return Math.atan2(dx, -dy) * (180 / Math.PI);
 }
 
 // --- 粒子配置 ---
 interface ParticleConfig {
   curve: BezierCurve;
-  duration: number;    // 一次运动时长
-  delay: number;       // 启动延迟
+  duration: number;
+  delay: number;
   easing: EasingFunctionFactory;
-  length: number;      // 拖尾长度
+  length: number;
 }
 
 const PARTICLES: ParticleConfig[] = [
-  // 左烟道 3 个粒子
-  { curve: LEFT_CURVE, duration: 4000, delay: 0, easing: Easing.bezier(0.4, 0, 0.6, 1), length: 10 },
-  { curve: LEFT_CURVE, duration: 5500, delay: 1200, easing: Easing.bezier(0.2, 0, 0.8, 1), length: 8 },
-  { curve: LEFT_CURVE, duration: 3500, delay: 2800, easing: Easing.bezier(0.5, 0, 0.5, 1), length: 12 },
-  // 右烟道 2 个粒子
-  { curve: RIGHT_CURVE, duration: 4800, delay: 600, easing: Easing.bezier(0.3, 0, 0.7, 1), length: 9 },
-  { curve: RIGHT_CURVE, duration: 6000, delay: 2000, easing: Easing.bezier(0.6, 0, 0.4, 1), length: 11 },
+  // 烟道1（左1）
+  { curve: CURVE_L1, duration: 4200, delay: 0,    easing: Easing.bezier(0.4, 0, 0.6, 1), length: 10 },
+  { curve: CURVE_L1, duration: 5800, delay: 1500, easing: Easing.bezier(0.2, 0, 0.8, 1), length: 8  },
+  // 烟道2（左2）
+  { curve: CURVE_L2, duration: 3800, delay: 800,  easing: Easing.bezier(0.5, 0, 0.5, 1), length: 11 },
+  { curve: CURVE_L2, duration: 6200, delay: 2300, easing: Easing.bezier(0.3, 0, 0.7, 1), length: 9  },
+  // 烟道3（左3）
+  { curve: CURVE_L3, duration: 5100, delay: 400,  easing: Easing.bezier(0.6, 0, 0.4, 1), length: 12 },
+  { curve: CURVE_L3, duration: 4600, delay: 1900, easing: Easing.bezier(0.4, 0, 0.6, 1), length: 7  },
+  // 烟道4（右1）
+  { curve: CURVE_R1, duration: 4900, delay: 300,  easing: Easing.bezier(0.3, 0, 0.7, 1), length: 9  },
+  { curve: CURVE_R1, duration: 3600, delay: 2100, easing: Easing.bezier(0.5, 0, 0.5, 1), length: 11 },
+  // 烟道5（右2）
+  { curve: CURVE_R2, duration: 5500, delay: 1100, easing: Easing.bezier(0.2, 0, 0.8, 1), length: 8  },
+  { curve: CURVE_R2, duration: 4300, delay: 2700, easing: Easing.bezier(0.6, 0, 0.4, 1), length: 13 },
+  // 烟道6（右3）
+  { curve: CURVE_R3, duration: 6100, delay: 700,  easing: Easing.bezier(0.4, 0, 0.6, 1), length: 10 },
+  { curve: CURVE_R3, duration: 3900, delay: 1600, easing: Easing.bezier(0.3, 0, 0.7, 1), length: 9  },
 ];
 
 // --- 单个粒子组件 ---
@@ -103,7 +113,7 @@ function SmokeParticle({ config }: { config: ParticleConfig }) {
       withRepeat(
         withSequence(
           withTiming(1, { duration: config.duration, easing: config.easing }),
-          withTiming(0, { duration: 0 }), // 瞬间复位到起点
+          withTiming(0, { duration: 0 }),
         ),
         -1,
       ),
@@ -114,7 +124,6 @@ function SmokeParticle({ config }: { config: ParticleConfig }) {
     const t = progress.value;
     const pos = cubicBezierPoint(t, config.curve);
     const angle = cubicBezierTangent(t, config.curve);
-    // 透明度随高度渐隐：底部最亮，顶部消散
     const opacity = 0.25 * (1 - t);
 
     return {
@@ -142,34 +151,24 @@ function SmokeParticle({ config }: { config: ParticleConfig }) {
 export default function IncenseSmoke() {
   return (
     <View style={styles.container}>
-      {/* 烟道：两条 S 形贝塞尔路径 */}
       <Svg width={CANVAS_W} height={CANVAS_H} style={styles.svg}>
         <Defs>
           <SvgLinearGradient id="smokeTrailGrad" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0%" stopColor="rgb(166,124,91)" stopOpacity="0" />
-            <Stop offset="70%" stopColor="rgb(166,124,91)" stopOpacity="0.08" />
+            <Stop offset="0%"   stopColor="rgb(166,124,91)" stopOpacity="0"    />
+            <Stop offset="70%"  stopColor="rgb(166,124,91)" stopOpacity="0.08" />
             <Stop offset="100%" stopColor="rgb(166,124,91)" stopOpacity="0.15" />
           </SvgLinearGradient>
         </Defs>
-        {/* 左烟道 */}
-        <Path
-          d={LEFT_PATH}
-          stroke="url(#smokeTrailGrad)"
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          fill="none"
-        />
-        {/* 右烟道 */}
-        <Path
-          d={RIGHT_PATH}
-          stroke="url(#smokeTrailGrad)"
-          strokeWidth={2}
-          strokeLinecap="round"
-          fill="none"
-        />
+        {/* 左三条烟道：S形 */}
+        <Path d={PATH_L1} stroke="url(#smokeTrailGrad)" strokeWidth={2.5} strokeLinecap="round" fill="none" />
+        <Path d={PATH_L2} stroke="url(#smokeTrailGrad)" strokeWidth={2.5} strokeLinecap="round" fill="none" />
+        <Path d={PATH_L3} stroke="url(#smokeTrailGrad)" strokeWidth={2.5} strokeLinecap="round" fill="none" />
+        {/* 右三条烟道：反S形 */}
+        <Path d={PATH_R1} stroke="url(#smokeTrailGrad)" strokeWidth={2}   strokeLinecap="round" fill="none" />
+        <Path d={PATH_R2} stroke="url(#smokeTrailGrad)" strokeWidth={2}   strokeLinecap="round" fill="none" />
+        <Path d={PATH_R3} stroke="url(#smokeTrailGrad)" strokeWidth={2}   strokeLinecap="round" fill="none" />
       </Svg>
 
-      {/* 5 个粒子 */}
       {PARTICLES.map((config, index) => (
         <SmokeParticle key={index} config={config} />
       ))}
